@@ -1,4 +1,4 @@
-from keepassxc_http import Connection, Identity
+from keepassxc_browser import Connection, Identity
 from pathlib import Path
 
 
