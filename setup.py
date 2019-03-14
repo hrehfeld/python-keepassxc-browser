@@ -5,7 +5,7 @@ from setuptools import setup
 setup(
     name='keepassxc_browser',
     version='0.1.0',
-    packages=['keepassxc_http',],
+    packages=['keepassxc_browser',],
     install_requires=[
         'pysodium',
     ],
