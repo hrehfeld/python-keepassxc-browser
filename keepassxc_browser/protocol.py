@@ -112,12 +112,16 @@ class Connection:
         if tmpdir:
             tmpdir = Path(tmpdir)
             tmpdir_socket_path = (tmpdir / DEFAULT_SOCKET_NAME)
+
         xdg_runtime_dir = os.getenv('XDG_RUNTIME_DIR')
+        if xdg_runtime_dir:
+            xdg_runtime_dir = Path(xdg_runtime_dir)
+            runtime_socket_path = (xdg_runtime_dir / DEFAULT_SOCKET_NAME)
 
         if platform.system() == "Darwin" and tmpdir and tmpdir_socket_path.exists():
             server_address = tmpdir_socket_path
-        elif xdg_runtime_dir:
-            server_address = Path(xdg_runtime_dir) / DEFAULT_SOCKET_NAME
+        elif xdg_runtime_dir and runtime_socket_path.exists():
+            server_address = runtime_socket_path
             # TODO: tmpdir is untested
         elif tmpdir and tmpdir_socket_path.exists():
             server_address = tmpdir_socket_path
