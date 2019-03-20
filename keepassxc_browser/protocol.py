@@ -15,7 +15,7 @@ DEFAULT_SOCKET_NAME = 'kpxc_server'
 def create_keypair():
     """Return (public key, private key)"""
     return pysodium.crypto_box_keypair()
-    
+
 
 def create_nonce():
     return pysodium.randombytes(pysodium.crypto_box_NONCEBYTES)
@@ -40,7 +40,7 @@ def increment_nonce(nonce):
 
     c_state = 1
     for i, x in enumerate(next_nonce):
-        c_state += x 
+        c_state += x
         c_state %= 256
         next_nonce[i] = c_state
         c_state >>= 8
@@ -141,7 +141,7 @@ class Connection:
             raise Exception("Could not connect to {addr}".format(addr=self.server_address))
 
         self.sock = sock
-        
+
 
     def disconnect(self):
         self.sock.close()
@@ -176,7 +176,7 @@ class Connection:
     def encrypt_message_send_command(self, identity, action, message):
         command, nonce = create_encrypted_command(identity, action, message)
         return self.send_encrypted_command(identity, command, nonce)
-    
+
     def change_public_keys(self, identity):
         nonce, next_nonce = create_nonces()
 
@@ -210,7 +210,7 @@ class Connection:
         associated_name = resp_message['id']
         identity.associated_name = associated_name
         return associated_name
-        
+
     def test_associate(self, identity):
         action = 'test-associate'
         assert identity.associated_id_key is not None, identity.associated_id_key
@@ -224,7 +224,7 @@ class Connection:
         except ProtocolError:
             return False
         return True
-        
+
     def create_password(self, identity):
         action = 'generate-password'
         command = create_command(action)
@@ -236,7 +236,7 @@ class Connection:
         assert len(entries) == 1, resp
         entry = entries[0]
         return entry['login'], entry['password']
-        
+
     def get_logins(self, identity, url, submit_url=None, http_auth=None):
         action = 'get-logins'
         message = create_message(
@@ -312,7 +312,7 @@ class Identity:
 
     def serialize(self):
         binary_data = self.publicKey, self.secretKey, self.associated_id_key, self.serverPublicKey
-        text_data = self.associated_name, 
+        text_data = self.associated_name,
         binary_data  = [binary_to_b64(d) for d in binary_data]
         s = json.dumps(list(binary_data) + list(text_data))
         return s
