@@ -2,7 +2,7 @@ from keepassxc_browser import Connection, Identity
 from pathlib import Path
 
 
-client_id = 'python-keepassxc-http'
+client_id = 'python-keepassxc-browser'
 
 state_file = Path('.assoc')
 if state_file.exists():
