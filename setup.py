@@ -6,6 +6,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'pysodium',
+        'pywin32'
     ],
     description='Access the KeepassXC Browser API from python',
     url='https://github.com/hrehfeld/python-keepassxc-browser',
