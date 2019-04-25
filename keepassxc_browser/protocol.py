@@ -2,7 +2,7 @@ from base64 import b64decode, b64encode
 import json
 import os.path
 import platform
-import pysodium
+from nacl import bindings as pysodium
 import socket
 from pathlib import Path
 import win32file

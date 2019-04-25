@@ -5,7 +5,7 @@ setup(
     version='0.1.1',
     packages=find_packages(),
     install_requires=[
-        'pysodium',
+        'PyNaCl',
         'pywin32'
     ],
     description='Access the KeepassXC Browser API from python',
