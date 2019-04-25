@@ -108,7 +108,8 @@ class ProtocolError(Exception):
 
 class WinSock:
     """ A basic socket wrapper for Windows named pipes """
-    def __init__(self, desired_access, creation_disposition, share_mode=0, security_attributes=None, flags_and_attributes=0, input_nullok=None):
+    def __init__(self, desired_access, creation_disposition, share_mode=0,
+                 security_attributes=None, flags_and_attributes=0, input_nullok=None):
         self.desired_access = desired_access
         self.creation_disposition = creation_disposition
         self.share_mode = share_mode
@@ -182,7 +183,6 @@ class Connection:
 
         self.sock = sock
 
-
     def disconnect(self):
         self.sock.close()
 
@@ -253,9 +253,10 @@ class Connection:
         action = 'test-associate'
         assert identity.associated_id_key is not None, identity.associated_id_key
 
-        message = create_message(action
-                                      , id=identity.associated_name
-                                      , key=binary_to_b64(identity.associated_id_key)
+        message = create_message(
+            action
+            , id=identity.associated_name
+            , key=binary_to_b64(identity.associated_id_key)
         )
         try:
             self.encrypt_message_send_command(identity, action, message)
@@ -314,7 +315,8 @@ class Connection:
 
 
 class Identity:
-    def __init__(self, client_id, public_key=None, private_key=None, id_key=None, associated_name=None, server_public_key=None):
+    def __init__(self, client_id, public_key=None, private_key=None,
+                 id_key=None, associated_name=None, server_public_key=None):
         self.client_id = client_id
         if not public_key:
             assert not private_key
@@ -351,7 +353,7 @@ class Identity:
     def serialize(self):
         binary_data = self.publicKey, self.secretKey, self.associated_id_key, self.serverPublicKey
         text_data = self.associated_name,
-        binary_data  = [binary_to_b64(d) for d in binary_data]
+        binary_data = [binary_to_b64(d) for d in binary_data]
         s = json.dumps(list(binary_data) + list(text_data))
         return s
 

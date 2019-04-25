@@ -25,8 +25,9 @@ if not c.test_associate(id):
         f.write(data)
     del data
 
-c.create_password(id)
-c.set_login(id, url='https://python-test123', login='test-user', password='test-password', entry_id=None, submit_url=None)
-c.get_logins(id, url='https://python-test123')
+login, password = c.create_password(id)
+url = 'https://python-test123'
+c.set_login(id, url=url, login='test-user', password=password, entry_id=None, submit_url=None)
+c.get_logins(id, url=url)
 # c.lock_database(id)
 c.disconnect()
