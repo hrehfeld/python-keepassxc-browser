@@ -2,10 +2,14 @@ from base64 import b64decode, b64encode
 import json
 import os.path
 import platform
-from nacl import bindings as pysodium
 import socket
 from pathlib import Path
-import win32file
+if platform.system() == "Windows":
+    from nacl import bindings as pysodium
+    import win32file
+else:
+    import pysodium
+
 
 BUFF_SIZE = 1024 * 1024
 DEFAULT_SOCKET_TIMEOUT = 60
