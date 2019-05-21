@@ -1,3 +1,4 @@
+from .exceptions import ProtocolError
 from base64 import b64decode, b64encode
 import json
 import os.path
@@ -99,10 +100,6 @@ def create_encrypted_command(crypto, action, message):
         , message=binary_to_b64(crypto.encrypt_message(message, nonce))
     )
     return command, nonce
-
-
-class ProtocolError(Exception):
-    pass
 
 
 class Connection:
