@@ -1,0 +1,5 @@
+#!/usr/bin/python3
+
+from keepassxc_browser.cli import main
+
+main()
