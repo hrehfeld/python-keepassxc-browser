@@ -1,4 +1,4 @@
-from keepassxc_browser import Connection, Identity
+from keepassxc_browser import Connection, Identity, ProtocolError
 from pathlib import Path
 
 
@@ -15,7 +15,11 @@ else:
 c = Connection()
 c.connect()
 c.change_public_keys(id)
-c.get_database_hash(id)
+try:
+    c.get_database_hash(id)
+except ProtocolError as ex:
+    print(ex)
+    exit(1)
 
 if not c.test_associate(id):
     associated_name = c.associate(id)
