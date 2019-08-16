@@ -192,11 +192,9 @@ class Connection:
         identity.serverPublicKey = server_public_key
 
     def get_database_hash(self, identity):
-        # doesn't ned to be encrypted
         action = 'get-databasehash'
         message = create_message(action)
-        command = create_command(action, message=json.dumps(message))
-        resp_message = self.send_encrypted_command(identity, command)
+        resp_message = self.encrypt_message_send_command(identity, action, message)
         return resp_message['hash']
 
     def associate(self, identity):
