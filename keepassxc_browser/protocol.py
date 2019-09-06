@@ -192,11 +192,9 @@ class Connection:
         identity.serverPublicKey = server_public_key
 
     def get_database_hash(self, identity):
-        # doesn't ned to be encrypted
         action = 'get-databasehash'
         message = create_message(action)
-        command = create_command(action, message=json.dumps(message))
-        resp_message = self.send_encrypted_command(identity, command)
+        resp_message = self.encrypt_message_send_command(identity, action, message)
         return resp_message['hash']
 
     def associate(self, identity):
@@ -275,6 +273,28 @@ class Connection:
         resp_message = self.encrypt_message_send_command(identity, action, message)
         assert resp_message['success']
 
+    def is_database_open(self, identity):
+        # Yeah, that's really hacky, FIXME when https://github.com/keepassxreboot/keepassxc-browser/issues/594 is closed
+        try:
+            self.get_database_hash(identity)
+            return True
+        except ProtocolError as ex:
+            return False
+
+    def wait_for_unlock(self):
+        """
+        This will listen to all messages until {'action': 'database-unlocked'} is received.
+        If the database is already open, it will wait until it is unlocked the next time. This
+        will not time out. If the database was unlocked while connected, and this method is called
+        afterwards, it will return even if the database has been closed again in the meantime.
+        """
+        while True:
+            try:
+                action = json.loads(self.sock.recv(BUFF_SIZE).decode())['action']
+                if action == "database-unlocked":
+                    break
+            except socket.timeout:
+                pass
 
 class Identity:
     def __init__(self, client_id, public_key=None, private_key=None, id_key=None, associated_name=None, server_public_key=None):
