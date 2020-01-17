@@ -240,9 +240,10 @@ class Connection:
         action = 'get-logins'
         message = create_message(
             action
+            , id=identity.associated_name
             , url=url
-            , keys=[dict(key=binary_to_b64(identity.publicKey)
-                         , idKey=binary_to_b64(identity.associated_id_key))]
+            , keys=[dict(id=identity.associated_name
+                         , key=binary_to_b64(identity.associated_id_key))]
         )
         if submit_url:
             message['submitUrl'] = submit_url
@@ -258,6 +259,7 @@ class Connection:
         action = 'set-login'
         message = create_message(
             action
+            , id=identity.associated_name
             , url=url
         )
         for k in 'login password entry_id submit_url'.split():
