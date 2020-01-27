@@ -1,11 +1,13 @@
-from .exceptions import ProtocolError
-from base64 import b64decode, b64encode
 import json
 import os.path
 import platform
-import pysodium
 import socket
+from base64 import b64decode, b64encode
 from pathlib import Path
+
+import pysodium
+
+from .exceptions import ProtocolError
 
 BUFF_SIZE = 1024 * 1024
 DEFAULT_SOCKET_TIMEOUT = 60
@@ -130,7 +132,7 @@ class Connection:
 
         try:
             sock.connect(str(self.server_address))
-        except socket.error as message:
+        except socket.error:
             sock.close()
             raise Exception(
                 "Could not connect to {addr}".format(addr=self.server_address)
@@ -237,10 +239,10 @@ class Connection:
             id=identity.associated_name,
             url=url,
             keys=[
-                dict(
-                    id=identity.associated_name,
-                    key=binary_to_b64(identity.associated_id_key),
-                )
+                {
+                    "id": identity.associated_name,
+                    "key": binary_to_b64(identity.associated_id_key),
+                }
             ],
         )
         if submit_url:
@@ -276,7 +278,7 @@ class Connection:
         try:
             self.get_database_hash(identity)
             return True
-        except ProtocolError as ex:
+        except ProtocolError:
             return False
 
     def wait_for_unlock(self):

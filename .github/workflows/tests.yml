@@ -17,5 +17,7 @@ jobs:
       run: pip install -e .
     - name: Install dev dependencies
       run: pip install -r dev-requirements.txt
-    - name: Check formatting
+    - name: Check formatting with black
       run: black --check keepassxc_browser setup.py example.py
+    - name: Check flake8
+      run: flake8 keepassxc_browser setup.py example.py

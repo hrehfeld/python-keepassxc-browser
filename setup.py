@@ -1,10 +1,10 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 setup(
     name="keepassxc-browser",
     version="0.1.3",
     packages=find_packages(),
-    install_requires=["pysodium",],
+    install_requires=["pysodium"],
     description="Access the KeepassXC Browser API from python",
     url="https://github.com/hrehfeld/python-keepassxc-browser",
     author="Hauke Rehfeld",
