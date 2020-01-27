@@ -10,7 +10,7 @@ from pathlib import Path
 BUFF_SIZE = 1024 * 1024
 DEFAULT_SOCKET_TIMEOUT = 60
 
-DEFAULT_SOCKET_NAME = 'kpxc_server'
+DEFAULT_SOCKET_NAME = "kpxc_server"
 
 
 def create_keypair():
@@ -37,7 +37,7 @@ def create_nonces(nonce=None, next_nonce=None):
 
 def increment_nonce(nonce):
     next_nonce = list(nonce)
-    assert(isinstance(nonce, bytes))
+    assert isinstance(nonce, bytes)
 
     c_state = 1
     for i, x in enumerate(next_nonce):
@@ -69,26 +69,20 @@ def binary_from_b64(s):
 
 def check_nonces(response, expected_nonce):
     assert isinstance(response, dict), response
-    nonce_key = 'nonce'
+    nonce_key = "nonce"
     assert nonce_key in response, repr(response)
     response_nonce = binary_from_b64(response[nonce_key])
     assert response_nonce == expected_nonce
 
 
 def create_command(action, **data):
-    command = {
-        "action": action,
-        "triggerUnlock": 'true'
-    }
+    command = {"action": action, "triggerUnlock": "true"}
     command.update(data)
     return command
 
 
 def create_message(action, **data):
-    command = {
-        "action": action,
-        "triggerUnlock": 'true'
-    }
+    command = {"action": action, "triggerUnlock": "true"}
     command.update(data)
     return command
 
@@ -96,8 +90,7 @@ def create_message(action, **data):
 def create_encrypted_command(crypto, action, message):
     nonce = create_nonce()
     command = create_command(
-        action
-        , message=binary_to_b64(crypto.encrypt_message(message, nonce))
+        action, message=binary_to_b64(crypto.encrypt_message(message, nonce))
     )
     return command, nonce
 
@@ -105,15 +98,15 @@ def create_encrypted_command(crypto, action, message):
 class Connection:
     def __init__(self):
         # TODO: darwin is untested
-        tmpdir = os.getenv('TMPDIR')
+        tmpdir = os.getenv("TMPDIR")
         if tmpdir:
             tmpdir = Path(tmpdir)
-            tmpdir_socket_path = (tmpdir / DEFAULT_SOCKET_NAME)
+            tmpdir_socket_path = tmpdir / DEFAULT_SOCKET_NAME
 
-        xdg_runtime_dir = os.getenv('XDG_RUNTIME_DIR')
+        xdg_runtime_dir = os.getenv("XDG_RUNTIME_DIR")
         if xdg_runtime_dir:
             xdg_runtime_dir = Path(xdg_runtime_dir)
-            runtime_socket_path = (xdg_runtime_dir / DEFAULT_SOCKET_NAME)
+            runtime_socket_path = xdg_runtime_dir / DEFAULT_SOCKET_NAME
 
         if platform.system() == "Darwin" and tmpdir and tmpdir_socket_path.exists():
             server_address = tmpdir_socket_path
@@ -123,7 +116,7 @@ class Connection:
         elif tmpdir and tmpdir_socket_path.exists():
             server_address = tmpdir_socket_path
         else:
-            raise OSError('Unknown path for keepassxc socket.')
+            raise OSError("Unknown path for keepassxc socket.")
 
         self.server_address = server_address
 
@@ -139,16 +132,17 @@ class Connection:
             sock.connect(str(self.server_address))
         except socket.error as message:
             sock.close()
-            raise Exception("Could not connect to {addr}".format(addr=self.server_address))
+            raise Exception(
+                "Could not connect to {addr}".format(addr=self.server_address)
+            )
 
         self.sock = sock
-
 
     def disconnect(self):
         self.sock.close()
 
     def send(self, command):
-        assert(isinstance(command, str))
+        assert isinstance(command, str)
         self.sock.send(command.encode())
 
         resp, server = self.sock.recvfrom(BUFF_SIZE)
@@ -163,15 +157,15 @@ class Connection:
 
         identity.sign_command(command, nonce)
         resp = self.send_json(command)
-        if 'error' in resp:
-            raise ProtocolError(resp['error'])
+        if "error" in resp:
+            raise ProtocolError(resp["error"])
         check_nonces(resp, next_nonce)
         return resp
 
     def send_encrypted_command(self, identity, command, nonce=None, next_nonce=None):
         nonce, next_nonce = create_nonces(nonce, next_nonce)
         resp = self.send_command(identity, command, nonce, next_nonce)
-        resp_message = identity.decrypt_message(resp['message'], next_nonce)
+        resp_message = identity.decrypt_message(resp["message"], next_nonce)
         return resp_message
 
     def encrypt_message_send_command(self, identity, action, message):
@@ -182,41 +176,41 @@ class Connection:
         nonce, next_nonce = create_nonces()
 
         command = create_command(
-            'change-public-keys',
-            publicKey=binary_to_b64(identity.publicKey)
+            "change-public-keys", publicKey=binary_to_b64(identity.publicKey)
         )
         resp = self.send_command(identity, command)
 
-        assert 'publicKey' in resp, resp
-        server_public_key = binary_from_b64(resp['publicKey'])
+        assert "publicKey" in resp, resp
+        server_public_key = binary_from_b64(resp["publicKey"])
         identity.serverPublicKey = server_public_key
 
     def get_database_hash(self, identity):
-        action = 'get-databasehash'
+        action = "get-databasehash"
         message = create_message(action)
         resp_message = self.encrypt_message_send_command(identity, action, message)
-        return resp_message['hash']
+        return resp_message["hash"]
 
     def associate(self, identity):
-        action = 'associate'
+        action = "associate"
         message = create_message(
-            action
-            , key=binary_to_b64(identity.publicKey)
-            , idKey=binary_to_b64(identity.associated_id_key)
+            action,
+            key=binary_to_b64(identity.publicKey),
+            idKey=binary_to_b64(identity.associated_id_key),
         )
         resp_message = self.encrypt_message_send_command(identity, action, message)
-        assert 'id' in resp_message
-        associated_name = resp_message['id']
+        assert "id" in resp_message
+        associated_name = resp_message["id"]
         identity.associated_name = associated_name
         return associated_name
 
     def test_associate(self, identity):
-        action = 'test-associate'
+        action = "test-associate"
         assert identity.associated_id_key is not None, identity.associated_id_key
 
-        message = create_message(action
-                                      , id=identity.associated_name
-                                      , key=binary_to_b64(identity.associated_id_key)
+        message = create_message(
+            action,
+            id=identity.associated_name,
+            key=binary_to_b64(identity.associated_id_key),
         )
         try:
             self.encrypt_message_send_command(identity, action, message)
@@ -225,55 +219,57 @@ class Connection:
         return True
 
     def create_password(self, identity):
-        action = 'generate-password'
+        action = "generate-password"
         command = create_command(action)
         nonce = create_nonce()
         resp = self.send_encrypted_command(identity, command, nonce)
 
-        assert 'entries' in resp
-        entries = resp['entries']
+        assert "entries" in resp
+        entries = resp["entries"]
         assert len(entries) == 1, resp
         entry = entries[0]
-        return entry['login'], entry['password']
+        return entry["login"], entry["password"]
 
     def get_logins(self, identity, url, submit_url=None, http_auth=None):
-        action = 'get-logins'
+        action = "get-logins"
         message = create_message(
-            action
-            , id=identity.associated_name
-            , url=url
-            , keys=[dict(id=identity.associated_name
-                         , key=binary_to_b64(identity.associated_id_key))]
+            action,
+            id=identity.associated_name,
+            url=url,
+            keys=[
+                dict(
+                    id=identity.associated_name,
+                    key=binary_to_b64(identity.associated_id_key),
+                )
+            ],
         )
         if submit_url:
-            message['submitUrl'] = submit_url
+            message["submitUrl"] = submit_url
         if http_auth:
-            message['httpAuth'] = http_auth
+            message["httpAuth"] = http_auth
 
         resp_message = self.encrypt_message_send_command(identity, action, message)
-        return resp_message['entries']
+        return resp_message["entries"]
 
-    def set_login(self, identity, url, login=None, password=None, entry_id=None, submit_url=None):
-        if not (url.startswith('mailto:') or url.startswith('https:')):
+    def set_login(
+        self, identity, url, login=None, password=None, entry_id=None, submit_url=None
+    ):
+        if not (url.startswith("mailto:") or url.startswith("https:")):
             raise Exception('Url needs to start with "mailto:" or "https:"')
-        action = 'set-login'
-        message = create_message(
-            action
-            , id=identity.associated_name
-            , url=url
-        )
-        for k in 'login password entry_id submit_url'.split():
+        action = "set-login"
+        message = create_message(action, id=identity.associated_name, url=url)
+        for k in "login password entry_id submit_url".split():
             v = locals()[k]
             if v is not None:
                 message[k] = v
         resp_message = self.encrypt_message_send_command(identity, action, message)
-        assert resp_message['success']
+        assert resp_message["success"]
 
     def lock_database(self, identity):
-        action = 'lock-database'
+        action = "lock-database"
         message = create_message(action)
         resp_message = self.encrypt_message_send_command(identity, action, message)
-        assert resp_message['success']
+        assert resp_message["success"]
 
     def is_database_open(self, identity):
         # Yeah, that's really hacky, FIXME when https://github.com/keepassxreboot/keepassxc-browser/issues/594 is closed
@@ -285,21 +281,31 @@ class Connection:
 
     def wait_for_unlock(self):
         """
-        This will listen to all messages until {'action': 'database-unlocked'} is received.
+        This will listen to all messages until {'action': 'database-unlocked'}
+ is received.
         If the database is already open, it will wait until it is unlocked the next time. This
         will not time out. If the database was unlocked while connected, and this method is called
         afterwards, it will return even if the database has been closed again in the meantime.
         """
         while True:
             try:
-                action = json.loads(self.sock.recv(BUFF_SIZE).decode())['action']
+                action = json.loads(self.sock.recv(BUFF_SIZE).decode())["action"]
                 if action == "database-unlocked":
                     break
             except socket.timeout:
                 pass
 
+
 class Identity:
-    def __init__(self, client_id, public_key=None, private_key=None, id_key=None, associated_name=None, server_public_key=None):
+    def __init__(
+        self,
+        client_id,
+        public_key=None,
+        private_key=None,
+        id_key=None,
+        associated_name=None,
+        server_public_key=None,
+    ):
         self.client_id = client_id
         if not public_key:
             assert not private_key
@@ -317,8 +323,8 @@ class Identity:
         self.serverPublicKey = server_public_key
 
     def sign_command(self, command, nonce):
-        command.setdefault('nonce', binary_to_b64(nonce))
-        command.setdefault('clientID', self.client_id)
+        command.setdefault("nonce", binary_to_b64(nonce))
+        command.setdefault("clientID", self.client_id)
 
     def encrypt_message(self, message, nonce):
         message = json.dumps(message)
@@ -328,15 +334,22 @@ class Identity:
 
     def decrypt_message(self, resp_message, expected_nonce):
         resp_message = binary_from_b64(resp_message)
-        resp_message = decrypt(resp_message, expected_nonce, self.serverPublicKey, self.secretKey)
+        resp_message = decrypt(
+            resp_message, expected_nonce, self.serverPublicKey, self.secretKey
+        )
         resp_message = json.loads(resp_message)
         check_nonces(resp_message, expected_nonce)
         return resp_message
 
     def serialize(self):
-        binary_data = self.publicKey, self.secretKey, self.associated_id_key, self.serverPublicKey
-        text_data = self.associated_name,
-        binary_data  = [binary_to_b64(d) for d in binary_data]
+        binary_data = (
+            self.publicKey,
+            self.secretKey,
+            self.associated_id_key,
+            self.serverPublicKey,
+        )
+        text_data = (self.associated_name,)
+        binary_data = [binary_to_b64(d) for d in binary_data]
         s = json.dumps(list(binary_data) + list(text_data))
         return s
 
@@ -347,12 +360,12 @@ class Identity:
         text_data = data[4:]
         binary_data = [binary_from_b64(d) for d in binary_data]
         public_key, private_key, id_key, server_public_key = binary_data
-        associated_name, = text_data
+        (associated_name,) = text_data
         return cls(
-            client_id=client_id
-            , public_key=public_key
-            , private_key=private_key
-            , id_key=id_key
-            , associated_name=associated_name
-            , server_public_key=server_public_key
+            client_id=client_id,
+            public_key=public_key,
+            private_key=private_key,
+            id_key=id_key,
+            associated_name=associated_name,
+            server_public_key=server_public_key,
         )
