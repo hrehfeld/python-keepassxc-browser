@@ -21,3 +21,5 @@ jobs:
       run: black --check keepassxc_browser setup.py example.py
     - name: Check flake8
       run: flake8 keepassxc_browser setup.py example.py
+    - name: Check import order
+      run: isort -rc -c keepassxc_browser setup.py example.py
