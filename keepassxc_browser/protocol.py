@@ -269,6 +269,38 @@ class Connection:
         resp_message = self.encrypt_message_send_command(identity, action, message)
         assert resp_message['success']
 
+    def create_database_group(self, identity, name):
+        assert name, 'Group name must not be empty.'
+        action = 'create-new-group'
+        message = create_message(action, id=identity.associated_name)
+        message['groupName'] = name
+        resp_message = self.encrypt_message_send_command(identity, action, message)
+        assert resp_message['success']
+        return dict(name=resp_message['name'], uuid=resp_message['uuid'])
+
+    def get_database_groups(self, identity):
+        action = 'get-database-groups'
+        message = create_message(action, id=identity.associated_name)
+        resp_message = self.encrypt_message_send_command(identity, action, message)
+        assert resp_message['success']
+        return resp_message['groups']['groups']
+
+    def find_group_uuid(self, identity, group_name):
+        def topdown_search(main_group):
+            if main_group['name'] == group_name:
+                return main_group['uuid']
+
+            for db_group in main_group['children']:
+                if db_group['name'] == group_name:
+                    return db_group['uuid']
+
+                child_group = topdown_search(db_group)
+
+                if child_group:
+                    return child_group
+
+        return topdown_search(self.get_database_groups(identity)[0])
+
     def lock_database(self, identity):
         action = 'lock-database'
         message = create_message(action)
@@ -285,7 +317,8 @@ class Connection:
 
     def wait_for_unlock(self):
         """
-        This will listen to all messages until {'action': 'database-unlocked'} is received.
+        This will listen to all messages until {'action': 'database-unlocked'}
+ is received.
         If the database is already open, it will wait until it is unlocked the next time. This
         will not time out. If the database was unlocked while connected, and this method is called
         afterwards, it will return even if the database has been closed again in the meantime.
