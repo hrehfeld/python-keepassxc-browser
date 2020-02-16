@@ -308,9 +308,6 @@ class Connection:
                 return main_group['uuid']
 
             for db_group in main_group['children']:
-                if db_group['name'] == group_name:
-                    return db_group['uuid']
-
                 child_group = topdown_search(db_group)
 
                 if child_group:
