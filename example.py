@@ -30,6 +30,11 @@ def main():
         del data
 
     c.create_password(id)
+    groups = c.get_database_groups(id)
+    root = groups[0] # {name: 'AAAA', uuid: 'BBBB', children: [...]}
+    foo = c.create_database_group(id, 'foo')
+    assert foo['uuid'] == c.find_group_uuid(id, 'foo')
+    
     c.set_login(id, url='https://python-test123', login='test-user', password='test-password', entry_id=None, submit_url=None)
     c.get_logins(id, url='https://python-test123')
     # c.lock_database(id)
