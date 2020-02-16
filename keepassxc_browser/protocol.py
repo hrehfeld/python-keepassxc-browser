@@ -102,6 +102,11 @@ def create_encrypted_command(crypto, action, message):
     return command, nonce
 
 
+def to_camel_case(snake_str):
+    components = snake_str.split('_')
+    return components[0] + ''.join(x.title() for x in components[1:])
+
+
 class Connection:
     def __init__(self):
         # TODO: darwin is untested
@@ -253,19 +258,25 @@ class Connection:
         resp_message = self.encrypt_message_send_command(identity, action, message)
         return resp_message['entries']
 
-    def set_login(self, identity, url, login=None, password=None, entry_id=None, submit_url=None):
-        if not (url.startswith('mailto:') or url.startswith('https:')):
-            raise Exception('Url needs to start with "mailto:" or "https:"')
+    def set_login(self, 
+                identity, 
+                url, 
+                login=None, 
+                password=None, 
+                submit_url=None,
+                group=None,
+                group_uuid=None,
+                uuid=None):
         action = 'set-login'
         message = create_message(
             action
             , id=identity.associated_name
             , url=url
         )
-        for k in 'login password entry_id submit_url'.split():
+        for k in 'login password submit_url group group_uuid uuid'.split():
             v = locals()[k]
             if v is not None:
-                message[k] = v
+                message[to_camel_case(k)] = v
         resp_message = self.encrypt_message_send_command(identity, action, message)
         assert resp_message['success']
 
