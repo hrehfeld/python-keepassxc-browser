@@ -264,7 +264,6 @@ class Connection:
                 login=None, 
                 password=None, 
                 submit_url=None,
-                group=None,
                 group_uuid=None,
                 uuid=None):
         action = 'set-login'
@@ -273,6 +272,13 @@ class Connection:
             , id=identity.associated_name
             , url=url
         )
+        
+        # keepassXC browser strange behaviour, to apply to a group by uuid the group 
+        # variable must not be an empty string, so... 
+        group = None
+        if group_uuid:
+            group = 'baz'
+
         for k in 'login password submit_url group group_uuid uuid'.split():
             v = locals()[k]
             if v is not None:

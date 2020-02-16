@@ -35,7 +35,13 @@ def main():
     foo = c.create_database_group(id, 'foo')
     assert foo['uuid'] == c.find_group_uuid(id, 'foo')
     
-    c.set_login(id, url='https://python-test123', login='test-user', password='test-password', entry_id=None, submit_url=None)
+    c.set_login(id, 
+                url='https://python-test123', 
+                login='test-user', 
+                password='test-password', 
+                group_uuid=foo['uuid'], 
+                submit_url=None)
+    
     c.get_logins(id, url='https://python-test123')
     # c.lock_database(id)
     c.disconnect()
