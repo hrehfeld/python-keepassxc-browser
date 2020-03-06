@@ -130,7 +130,7 @@ class Connection:
 
         try:
             sock.connect(str(self.server_address))
-        except socket.error as message:
+        except socket.error:
             sock.close()
             raise Exception(
                 "Could not connect to {addr}".format(addr=self.server_address)
@@ -276,7 +276,7 @@ class Connection:
         try:
             self.get_database_hash(identity)
             return True
-        except ProtocolError as ex:
+        except ProtocolError:
             return False
 
     def wait_for_unlock(self):

@@ -23,7 +23,6 @@ def main():
         exit(1)
 
     if not c.test_associate(id):
-        associated_name = c.associate(id)
         assert c.test_associate(id)
         data = id.serialize()
         with state_file.open('w') as f:
