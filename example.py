@@ -1,5 +1,6 @@
-from keepassxc_browser import Connection, Identity, ProtocolError
 from pathlib import Path
+
+from keepassxc_browser import Connection, Identity, ProtocolError
 
 
 def main():

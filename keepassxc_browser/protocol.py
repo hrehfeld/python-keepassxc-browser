@@ -1,11 +1,13 @@
-from .exceptions import ProtocolError
-from base64 import b64decode, b64encode
 import json
 import os.path
 import platform
-import pysodium
 import socket
+from base64 import b64decode, b64encode
 from pathlib import Path
+
+import pysodium
+
+from .exceptions import ProtocolError
 
 BUFF_SIZE = 1024 * 1024
 DEFAULT_SOCKET_TIMEOUT = 60
