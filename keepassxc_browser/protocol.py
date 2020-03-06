@@ -37,7 +37,7 @@ def create_nonces(nonce=None, next_nonce=None):
 
 def increment_nonce(nonce):
     next_nonce = list(nonce)
-    assert(isinstance(nonce, bytes))
+    assert isinstance(nonce, bytes)
 
     c_state = 1
     for i, x in enumerate(next_nonce):
@@ -76,19 +76,13 @@ def check_nonces(response, expected_nonce):
 
 
 def create_command(action, **data):
-    command = {
-        "action": action,
-        "triggerUnlock": 'true'
-    }
+    command = {"action": action, "triggerUnlock": 'true'}
     command.update(data)
     return command
 
 
 def create_message(action, **data):
-    command = {
-        "action": action,
-        "triggerUnlock": 'true'
-    }
+    command = {"action": action, "triggerUnlock": 'true'}
     command.update(data)
     return command
 
@@ -96,8 +90,7 @@ def create_message(action, **data):
 def create_encrypted_command(crypto, action, message):
     nonce = create_nonce()
     command = create_command(
-        action
-        , message=binary_to_b64(crypto.encrypt_message(message, nonce))
+        action, message=binary_to_b64(crypto.encrypt_message(message, nonce))
     )
     return command, nonce
 
@@ -108,12 +101,12 @@ class Connection:
         tmpdir = os.getenv('TMPDIR')
         if tmpdir:
             tmpdir = Path(tmpdir)
-            tmpdir_socket_path = (tmpdir / DEFAULT_SOCKET_NAME)
+            tmpdir_socket_path = tmpdir / DEFAULT_SOCKET_NAME
 
         xdg_runtime_dir = os.getenv('XDG_RUNTIME_DIR')
         if xdg_runtime_dir:
             xdg_runtime_dir = Path(xdg_runtime_dir)
-            runtime_socket_path = (xdg_runtime_dir / DEFAULT_SOCKET_NAME)
+            runtime_socket_path = xdg_runtime_dir / DEFAULT_SOCKET_NAME
 
         if platform.system() == "Darwin" and tmpdir and tmpdir_socket_path.exists():
             server_address = tmpdir_socket_path
@@ -139,16 +132,17 @@ class Connection:
             sock.connect(str(self.server_address))
         except socket.error as message:
             sock.close()
-            raise Exception("Could not connect to {addr}".format(addr=self.server_address))
+            raise Exception(
+                "Could not connect to {addr}".format(addr=self.server_address)
+            )
 
         self.sock = sock
-
 
     def disconnect(self):
         self.sock.close()
 
     def send(self, command):
-        assert(isinstance(command, str))
+        assert isinstance(command, str)
         self.sock.send(command.encode())
 
         resp, server = self.sock.recvfrom(BUFF_SIZE)
@@ -182,8 +176,7 @@ class Connection:
         nonce, next_nonce = create_nonces()
 
         command = create_command(
-            'change-public-keys',
-            publicKey=binary_to_b64(identity.publicKey)
+            'change-public-keys', publicKey=binary_to_b64(identity.publicKey)
         )
         resp = self.send_command(identity, command)
 
@@ -200,9 +193,9 @@ class Connection:
     def associate(self, identity):
         action = 'associate'
         message = create_message(
-            action
-            , key=binary_to_b64(identity.publicKey)
-            , idKey=binary_to_b64(identity.associated_id_key)
+            action,
+            key=binary_to_b64(identity.publicKey),
+            idKey=binary_to_b64(identity.associated_id_key),
         )
         resp_message = self.encrypt_message_send_command(identity, action, message)
         assert 'id' in resp_message
@@ -214,9 +207,10 @@ class Connection:
         action = 'test-associate'
         assert identity.associated_id_key is not None, identity.associated_id_key
 
-        message = create_message(action
-                                      , id=identity.associated_name
-                                      , key=binary_to_b64(identity.associated_id_key)
+        message = create_message(
+            action,
+            id=identity.associated_name,
+            key=binary_to_b64(identity.associated_id_key),
         )
         try:
             self.encrypt_message_send_command(identity, action, message)
@@ -239,11 +233,15 @@ class Connection:
     def get_logins(self, identity, url, submit_url=None, http_auth=None):
         action = 'get-logins'
         message = create_message(
-            action
-            , id=identity.associated_name
-            , url=url
-            , keys=[dict(id=identity.associated_name
-                         , key=binary_to_b64(identity.associated_id_key))]
+            action,
+            id=identity.associated_name,
+            url=url,
+            keys=[
+                dict(
+                    id=identity.associated_name,
+                    key=binary_to_b64(identity.associated_id_key),
+                )
+            ],
         )
         if submit_url:
             message['submitUrl'] = submit_url
@@ -253,15 +251,13 @@ class Connection:
         resp_message = self.encrypt_message_send_command(identity, action, message)
         return resp_message['entries']
 
-    def set_login(self, identity, url, login=None, password=None, entry_id=None, submit_url=None):
+    def set_login(
+        self, identity, url, login=None, password=None, entry_id=None, submit_url=None
+    ):
         if not (url.startswith('mailto:') or url.startswith('https:')):
             raise Exception('Url needs to start with "mailto:" or "https:"')
         action = 'set-login'
-        message = create_message(
-            action
-            , id=identity.associated_name
-            , url=url
-        )
+        message = create_message(action, id=identity.associated_name, url=url)
         for k in 'login password entry_id submit_url'.split():
             v = locals()[k]
             if v is not None:
@@ -285,7 +281,8 @@ class Connection:
 
     def wait_for_unlock(self):
         """
-        This will listen to all messages until {'action': 'database-unlocked'} is received.
+        This will listen to all messages until {'action': 'database-unlocked'}
+ is received.
         If the database is already open, it will wait until it is unlocked the next time. This
         will not time out. If the database was unlocked while connected, and this method is called
         afterwards, it will return even if the database has been closed again in the meantime.
@@ -298,8 +295,17 @@ class Connection:
             except socket.timeout:
                 pass
 
+
 class Identity:
-    def __init__(self, client_id, public_key=None, private_key=None, id_key=None, associated_name=None, server_public_key=None):
+    def __init__(
+        self,
+        client_id,
+        public_key=None,
+        private_key=None,
+        id_key=None,
+        associated_name=None,
+        server_public_key=None,
+    ):
         self.client_id = client_id
         if not public_key:
             assert not private_key
@@ -328,15 +334,22 @@ class Identity:
 
     def decrypt_message(self, resp_message, expected_nonce):
         resp_message = binary_from_b64(resp_message)
-        resp_message = decrypt(resp_message, expected_nonce, self.serverPublicKey, self.secretKey)
+        resp_message = decrypt(
+            resp_message, expected_nonce, self.serverPublicKey, self.secretKey
+        )
         resp_message = json.loads(resp_message)
         check_nonces(resp_message, expected_nonce)
         return resp_message
 
     def serialize(self):
-        binary_data = self.publicKey, self.secretKey, self.associated_id_key, self.serverPublicKey
-        text_data = self.associated_name,
-        binary_data  = [binary_to_b64(d) for d in binary_data]
+        binary_data = (
+            self.publicKey,
+            self.secretKey,
+            self.associated_id_key,
+            self.serverPublicKey,
+        )
+        text_data = (self.associated_name,)
+        binary_data = [binary_to_b64(d) for d in binary_data]
         s = json.dumps(list(binary_data) + list(text_data))
         return s
 
@@ -347,12 +360,12 @@ class Identity:
         text_data = data[4:]
         binary_data = [binary_from_b64(d) for d in binary_data]
         public_key, private_key, id_key, server_public_key = binary_data
-        associated_name, = text_data
+        (associated_name,) = text_data
         return cls(
-            client_id=client_id
-            , public_key=public_key
-            , private_key=private_key
-            , id_key=id_key
-            , associated_name=associated_name
-            , server_public_key=server_public_key
+            client_id=client_id,
+            public_key=public_key,
+            private_key=private_key,
+            id_key=id_key,
+            associated_name=associated_name,
+            server_public_key=server_public_key,
         )

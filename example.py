@@ -1,6 +1,7 @@
 from keepassxc_browser import Connection, Identity, ProtocolError
 from pathlib import Path
 
+
 def main():
     client_id = 'python-keepassxc-browser'
 
@@ -30,10 +31,18 @@ def main():
         del data
 
     c.create_password(id)
-    c.set_login(id, url='https://python-test123', login='test-user', password='test-password', entry_id=None, submit_url=None)
+    c.set_login(
+        id,
+        url='https://python-test123',
+        login='test-user',
+        password='test-password',
+        entry_id=None,
+        submit_url=None,
+    )
     c.get_logins(id, url='https://python-test123')
     # c.lock_database(id)
     c.disconnect()
+
 
 if __name__ == "__main__":
     main()
