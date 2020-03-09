@@ -309,12 +309,7 @@ class Identity:
         server_public_key=None,
     ):
         self.client_id = client_id
-        if not public_key:
-            assert not private_key
-        if not private_key:
-            assert not public_key
-        if not public_key:
-            public_key, private_key = create_keypair()
+        public_key, private_key = create_keypair()
 
         if not id_key:
             id_key = create_public_key()
@@ -344,12 +339,7 @@ class Identity:
         return resp_message
 
     def serialize(self):
-        binary_data = (
-            self.publicKey,
-            self.secretKey,
-            self.associated_id_key,
-            self.serverPublicKey,
-        )
+        binary_data = (self.associated_id_key,)
         text_data = (self.associated_name,)
         binary_data = [binary_to_b64(d) for d in binary_data]
         s = json.dumps(list(binary_data) + list(text_data))
@@ -358,16 +348,11 @@ class Identity:
     @classmethod
     def unserialize(cls, client_id, s):
         data = json.loads(s)
-        binary_data = data[:4]
-        text_data = data[4:]
-        binary_data = [binary_from_b64(d) for d in binary_data]
-        public_key, private_key, id_key, server_public_key = binary_data
-        (associated_name,) = text_data
+        binary_data = data[:1]
+        text_data = data[1:]
+        id_key = binary_from_b64(binary_data[0])
         return cls(
             client_id=client_id,
-            public_key=public_key,
-            private_key=private_key,
             id_key=id_key,
-            associated_name=associated_name,
-            server_public_key=server_public_key,
+            associated_name=text_data[0],
         )
