@@ -24,7 +24,8 @@ def main():
         exit(1)
 
     if not c.test_associate(id):
-        assert c.test_associate(id)
+        print('Not associated yet, associating now...')
+        assert c.associate(id)
         data = id.serialize()
         with state_file.open('w') as f:
             f.write(data)
