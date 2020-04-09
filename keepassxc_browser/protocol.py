@@ -299,6 +299,11 @@ class Connection:
 
 
 class Identity:
+    VERSION = 1
+    VERSION_KEY = 'version'
+    BINARY_KEY = 'binary'
+    TEXT_KEY = 'text'
+
     def __init__(
         self,
         client_id,
@@ -340,17 +345,60 @@ class Identity:
         binary_data = (self.associated_id_key,)
         text_data = (self.associated_name,)
         binary_data = [binary_to_b64(d) for d in binary_data]
-        s = json.dumps(list(binary_data) + list(text_data))
+        s = json.dumps({
+            self.VERSION_KEY: self.VERSION,
+            self.BINARY_KEY: list(binary_data),
+            self.TEXT_KEY: list(text_data),
+        })
         return s
 
     @classmethod
     def unserialize(cls, client_id, s):
         data = json.loads(s)
-        binary_data = data[:1]
-        text_data = data[1:]
-        id_key = binary_from_b64(binary_data[0])
+        if isinstance(data, list):
+            return cls.unserialize_v0(client_id, data)
+
+        unserializers = {
+            1: cls.unserialize_v1,
+        }
+
+        version = data[cls.VERSION_KEY]
+        assert version in unserializers, 'unknown version %s' % version
+        return unserializers[version](client_id, data)
+
+    @classmethod
+    def unserialize_v1(cls, client_id, data):
+        binary_data = data[cls.BINARY_KEY]
+        binary_data = [binary_from_b64(d) for d in binary_data]
+        text_data = data[cls.TEXT_KEY]
+        (id_key,) = binary_data
+        (associated_name,) = text_data
         return cls(
             client_id=client_id,
             id_key=id_key,
             associated_name=text_data[0],
+        )
+
+    @classmethod
+    def unserialize_v0(cls, client_id, data):
+        """The first version unserialize, maintained for backwards compatability."""
+
+        assert isinstance(data, list)
+
+        BINARY_SIZE = 4
+        TEXT_SIZE = 1
+        DATA_SIZE = BINARY_SIZE + TEXT_SIZE
+
+        assert len(data) == DATA_SIZE, data
+        binary_data = data[:BINARY_SIZE]
+        text_data = data[BINARY_SIZE:]
+
+        binary_data = [binary_from_b64(d) for d in binary_data]
+        public_key, private_key, id_key, server_public_key = binary_data
+        (associated_name,) = text_data
+        # public_key, private_key, server_public_key ignored, will be regenerated every time
+        return cls(
+            client_id=client_id,
+            id_key=id_key,
+            associated_name=associated_name,
         )
