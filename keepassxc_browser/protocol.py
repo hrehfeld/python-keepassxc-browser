@@ -299,22 +299,19 @@ class Connection:
 
 
 class Identity:
+    VERSION = 1
+    VERSION_KEY = 'version'
+    BINARY_KEY = 'binary'
+    TEXT_KEY = 'text'
+
     def __init__(
         self,
         client_id,
-        public_key=None,
-        private_key=None,
         id_key=None,
         associated_name=None,
-        server_public_key=None,
     ):
         self.client_id = client_id
-        if not public_key:
-            assert not private_key
-        if not private_key:
-            assert not public_key
-        if not public_key:
-            public_key, private_key = create_keypair()
+        public_key, private_key = create_keypair()
 
         if not id_key:
             id_key = create_public_key()
@@ -322,7 +319,7 @@ class Identity:
         self.secretKey = private_key
         self.associated_id_key = id_key
         self.associated_name = associated_name
-        self.serverPublicKey = server_public_key
+        self.serverPublicKey = None
 
     def sign_command(self, command, nonce):
         command.setdefault('nonce', binary_to_b64(nonce))
@@ -331,6 +328,7 @@ class Identity:
     def encrypt_message(self, message, nonce):
         message = json.dumps(message)
         message = message.encode()
+        assert self.serverPublicKey
         message = encrypt(message, nonce, self.serverPublicKey, self.secretKey)
         return message
 
@@ -344,30 +342,63 @@ class Identity:
         return resp_message
 
     def serialize(self):
-        binary_data = (
-            self.publicKey,
-            self.secretKey,
-            self.associated_id_key,
-            self.serverPublicKey,
-        )
+        binary_data = (self.associated_id_key,)
         text_data = (self.associated_name,)
         binary_data = [binary_to_b64(d) for d in binary_data]
-        s = json.dumps(list(binary_data) + list(text_data))
+        s = json.dumps({
+            self.VERSION_KEY: self.VERSION,
+            self.BINARY_KEY: list(binary_data),
+            self.TEXT_KEY: list(text_data),
+        })
         return s
 
     @classmethod
     def unserialize(cls, client_id, s):
         data = json.loads(s)
-        binary_data = data[:4]
-        text_data = data[4:]
+        if isinstance(data, list):
+            return cls.unserialize_v0(client_id, data)
+
+        unserializers = {
+            1: cls.unserialize_v1,
+        }
+
+        version = data[cls.VERSION_KEY]
+        assert version in unserializers, 'unknown version %s' % version
+        return unserializers[version](client_id, data)
+
+    @classmethod
+    def unserialize_v1(cls, client_id, data):
+        binary_data = data[cls.BINARY_KEY]
         binary_data = [binary_from_b64(d) for d in binary_data]
-        public_key, private_key, id_key, server_public_key = binary_data
+        text_data = data[cls.TEXT_KEY]
+        (id_key,) = binary_data
         (associated_name,) = text_data
         return cls(
             client_id=client_id,
-            public_key=public_key,
-            private_key=private_key,
+            id_key=id_key,
+            associated_name=text_data[0],
+        )
+
+    @classmethod
+    def unserialize_v0(cls, client_id, data):
+        """The first version unserialize, maintained for backwards compatability."""
+
+        assert isinstance(data, list)
+
+        BINARY_SIZE = 4
+        TEXT_SIZE = 1
+        DATA_SIZE = BINARY_SIZE + TEXT_SIZE
+
+        assert len(data) == DATA_SIZE, data
+        binary_data = data[:BINARY_SIZE]
+        text_data = data[BINARY_SIZE:]
+
+        binary_data = [binary_from_b64(d) for d in binary_data]
+        public_key, private_key, id_key, server_public_key = binary_data
+        (associated_name,) = text_data
+        # public_key, private_key, server_public_key ignored, will be regenerated every time
+        return cls(
+            client_id=client_id,
             id_key=id_key,
             associated_name=associated_name,
-            server_public_key=server_public_key,
         )
