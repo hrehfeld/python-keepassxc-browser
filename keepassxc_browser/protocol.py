@@ -302,8 +302,6 @@ class Identity:
     def __init__(
         self,
         client_id,
-        public_key=None,
-        private_key=None,
         id_key=None,
         associated_name=None,
         server_public_key=None,
