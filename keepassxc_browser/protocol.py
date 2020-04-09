@@ -304,7 +304,6 @@ class Identity:
         client_id,
         id_key=None,
         associated_name=None,
-        server_public_key=None,
     ):
         self.client_id = client_id
         public_key, private_key = create_keypair()
@@ -315,7 +314,7 @@ class Identity:
         self.secretKey = private_key
         self.associated_id_key = id_key
         self.associated_name = associated_name
-        self.serverPublicKey = server_public_key
+        self.serverPublicKey = None
 
     def sign_command(self, command, nonce):
         command.setdefault('nonce', binary_to_b64(nonce))
@@ -324,6 +323,7 @@ class Identity:
     def encrypt_message(self, message, nonce):
         message = json.dumps(message)
         message = message.encode()
+        assert self.serverPublicKey
         message = encrypt(message, nonce, self.serverPublicKey, self.secretKey)
         return message
 
