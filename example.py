@@ -18,10 +18,11 @@ def main():
     c.connect()
     c.change_public_keys(id)
     try:
-        c.get_database_hash(id)
+        db_hash = c.get_database_hash(id)
     except ProtocolError as ex:
         print(ex)
         exit(1)
+    print(db_hash)
 
     if not c.test_associate(id):
         print('Not associated yet, associating now...')
