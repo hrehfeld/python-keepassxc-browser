@@ -43,6 +43,10 @@ def main():
     )
     c.get_logins(id, url='https://python-test123')
     # c.lock_database(id)
+    
+    # group = c.create_database_group(id, 'keepassxc-rocks')
+    # assert group['name'] == 'keepassxc-rocks' and len(group['uuid']) == 32
+
     c.disconnect()
 
 
