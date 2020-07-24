@@ -267,6 +267,15 @@ class Connection:
         resp_message = self.encrypt_message_send_command(identity, action, message)
         assert resp_message['success']
 
+    def create_database_group(self, identity, name):
+        assert name, 'Group name must not be empty.'
+        action = 'create-new-group'
+        message = create_message(action, id=identity.associated_name)
+        message['groupName'] = name
+        resp_message = self.encrypt_message_send_command(identity, action, message)
+        assert resp_message['success']
+        return dict(name=resp_message['name'], uuid=resp_message['uuid'])
+
     def lock_database(self, identity):
         action = 'lock-database'
         message = create_message(action)
