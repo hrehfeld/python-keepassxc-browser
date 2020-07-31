@@ -97,17 +97,17 @@ def create_encrypted_command(crypto, action, message):
 
 
 class Connection:
-    def __init__(self):
+    def __init__(self, socket_name = DEFAULT_SOCKET_NAME):
         # TODO: darwin is untested
         tmpdir = os.getenv('TMPDIR')
         if tmpdir:
             tmpdir = Path(tmpdir)
-            tmpdir_socket_path = tmpdir / DEFAULT_SOCKET_NAME
+            tmpdir_socket_path = tmpdir / socket_name
 
         xdg_runtime_dir = os.getenv('XDG_RUNTIME_DIR')
         if xdg_runtime_dir:
             xdg_runtime_dir = Path(xdg_runtime_dir)
-            runtime_socket_path = xdg_runtime_dir / DEFAULT_SOCKET_NAME
+            runtime_socket_path = xdg_runtime_dir / socket_name
 
         if platform.system() == "Darwin" and tmpdir and tmpdir_socket_path.exists():
             server_address = tmpdir_socket_path
