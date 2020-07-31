@@ -12,8 +12,7 @@ from .exceptions import ProtocolError
 BUFF_SIZE = 1024 * 1024
 DEFAULT_SOCKET_TIMEOUT = 60
 
-DEFAULT_SOCKET_NAME = 'kpxc_server'
-
+DEFAULT_SOCKET_NAME = "org.keepassxc.KeePassXC.BrowserServer"
 
 def create_keypair():
     """Return (public key, private key)"""
