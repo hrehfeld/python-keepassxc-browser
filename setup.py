@@ -4,7 +4,10 @@ setup(
     name='keepassxc-browser',
     version='0.1.5',
     packages=find_packages(),
-    install_requires=['pysodium'],
+    install_requires=[
+        'pysodium',
+        'pywin32; platform_system == "Windows"'
+    ],
     description='Access the KeepassXC Browser API from python',
     url='https://github.com/hrehfeld/python-keepassxc-browser',
     author='Hauke Rehfeld',
