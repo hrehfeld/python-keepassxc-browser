@@ -34,7 +34,7 @@ class WinSock:
         if self.handle:
             self.handle.close()
 
-    def send(self, message: str):
+    def send(self, message):
         win32file.WriteFile(self.handle, message)
 
     def recvfrom(self, buff_size):
