@@ -7,6 +7,13 @@ from pathlib import Path
 
 import pysodium
 
+if platform.system() == "Windows":
+    import win32file
+    from .connection_win import WinSock
+
+else:
+    from .connection_posix import DefaultSock
+
 from .exceptions import ProtocolError
 
 BUFF_SIZE = 1024 * 1024
@@ -109,44 +116,36 @@ class Connection:
             xdg_runtime_dir = Path(xdg_runtime_dir)
             runtime_socket_path = xdg_runtime_dir / socket_name
 
-        if platform.system() == "Darwin" and tmpdir and tmpdir_socket_path.exists():
+        if platform.system() == "Windows":
+            server_address = f"{DEFAULT_SOCKET_NAME}_{os.getenv('USERNAME')}"
+            sock = WinSock(win32file.GENERIC_READ | win32file.GENERIC_WRITE, win32file.OPEN_EXISTING)
+        elif platform.system() == "Darwin" and tmpdir and tmpdir_socket_path.exists():
             server_address = tmpdir_socket_path
+            sock = DefaultSock(DEFAULT_SOCKET_TIMEOUT, BUFF_SIZE)
         elif xdg_runtime_dir and runtime_socket_path.exists():
             server_address = runtime_socket_path
             # TODO: tmpdir is untested
+            sock = DefaultSock(DEFAULT_SOCKET_TIMEOUT, BUFF_SIZE)
         elif tmpdir and tmpdir_socket_path.exists():
             server_address = tmpdir_socket_path
+            sock = DefaultSock(DEFAULT_SOCKET_TIMEOUT, BUFF_SIZE)
         else:
             raise OSError('Unknown path for keepassxc socket.')
 
         self.server_address = server_address
-
-        self.sock = None
+        self.connection = sock
 
     def connect(self):
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        sock.settimeout(DEFAULT_SOCKET_TIMEOUT)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, BUFF_SIZE)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, BUFF_SIZE)
-
-        try:
-            sock.connect(str(self.server_address))
-        except socket.error:
-            sock.close()
-            raise Exception(
-                "Could not connect to {addr}".format(addr=self.server_address)
-            )
-
-        self.sock = sock
+        self.connection.connect(str(self.server_address))
 
     def disconnect(self):
-        self.sock.close()
+        self.connection.close()
 
     def send(self, command):
         assert isinstance(command, str)
-        self.sock.send(command.encode())
+        self.connection.send(command.encode())
 
-        resp, server = self.sock.recvfrom(BUFF_SIZE)
+        resp, server = self.connection.recvfrom(BUFF_SIZE)
         r = resp.decode()
         return r
 
@@ -299,7 +298,7 @@ class Connection:
         """
         while True:
             try:
-                action = json.loads(self.sock.recv(BUFF_SIZE).decode())['action']
+                action = json.loads(self.connection.recv(BUFF_SIZE).decode())['action']
                 if action == "database-unlocked":
                     break
             except socket.timeout:
