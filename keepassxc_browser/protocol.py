@@ -298,7 +298,7 @@ class Connection:
         """
         while True:
             try:
-                action = json.loads(self.connection.recv(BUFF_SIZE).decode())['action']
+                action = json.loads(self.connection.recvfrom(BUFF_SIZE)[0].decode())['action']
                 if action == "database-unlocked":
                     break
             except socket.timeout:
