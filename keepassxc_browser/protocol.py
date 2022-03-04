@@ -21,6 +21,7 @@ DEFAULT_SOCKET_TIMEOUT = 60
 
 DEFAULT_SOCKET_NAME = "org.keepassxc.KeePassXC.BrowserServer"
 
+
 def create_keypair():
     """Return (public key, private key)"""
     return pysodium.crypto_box_keypair()
@@ -103,7 +104,7 @@ def create_encrypted_command(crypto, action, message):
 
 
 class Connection:
-    def __init__(self, socket_name = DEFAULT_SOCKET_NAME):
+    def __init__(self, socket_name=DEFAULT_SOCKET_NAME):
         # TODO: darwin is untested
         tmpdir = os.getenv('TMPDIR')
         if tmpdir:
