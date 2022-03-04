@@ -257,10 +257,16 @@ class Connection:
             raise Exception('Url needs to start with "mailto:" or "https:"')
         action = 'set-login'
         message = create_message(action, id=identity.associated_name, url=url)
-        for k in 'login password entry_id submit_url'.split():
-            v = locals()[k]
+
+        def fill_message(k, v):
             if v is not None:
                 message[k] = v
+
+        fill_message('login', login)
+        fill_message('password', password)
+        fill_message('uuid', entry_id)
+        fill_message('submit_url', submit_url)
+
         resp_message = self.encrypt_message_send_command(identity, action, message)
         assert resp_message['success']
 
