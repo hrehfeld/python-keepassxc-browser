@@ -2,10 +2,17 @@ import win32file
 
 
 class WinSock:
-    """ A basic socket wrapper for Windows named pipes """
+    """A basic socket wrapper for Windows named pipes"""
 
-    def __init__(self, desired_access, creation_disposition, share_mode=0,
-                 security_attributes=None, flags_and_attributes=0, input_nullok=None):
+    def __init__(
+        self,
+        desired_access,
+        creation_disposition,
+        share_mode=0,
+        security_attributes=None,
+        flags_and_attributes=0,
+        input_nullok=None,
+    ):
         self.desired_access = desired_access
         self.creation_disposition = creation_disposition
         self.share_mode = share_mode
@@ -23,12 +30,10 @@ class WinSock:
                 self.security_attributes,
                 self.creation_disposition,
                 self.flags_and_attributes,
-                self.input_nullok
+                self.input_nullok,
             )
         except Exception as e:
-            raise Exception(
-                "Could not connect to pipe {addr}".format(addr=address), e
-            )
+            raise Exception("Could not connect to pipe {addr}".format(addr=address), e)
 
     def close(self):
         if self.handle:

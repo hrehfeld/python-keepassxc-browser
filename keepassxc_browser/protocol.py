@@ -118,7 +118,10 @@ class Connection:
 
         if platform.system() == "Windows":
             server_address = f"{DEFAULT_SOCKET_NAME}_{os.getenv('USERNAME')}"
-            sock = WinSock(win32file.GENERIC_READ | win32file.GENERIC_WRITE, win32file.OPEN_EXISTING)
+            sock = WinSock(
+                win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+                win32file.OPEN_EXISTING,
+            )
         elif platform.system() == "Darwin" and tmpdir and tmpdir_socket_path.exists():
             server_address = tmpdir_socket_path
             sock = DefaultSock(DEFAULT_SOCKET_TIMEOUT, BUFF_SIZE)
@@ -296,15 +299,17 @@ class Connection:
 
     def wait_for_unlock(self):
         """
-        This will listen to all messages until {'action': 'database-unlocked'}
- is received.
-        If the database is already open, it will wait until it is unlocked the next time. This
-        will not time out. If the database was unlocked while connected, and this method is called
-        afterwards, it will return even if the database has been closed again in the meantime.
+               This will listen to all messages until {'action': 'database-unlocked'}
+        is received.
+               If the database is already open, it will wait until it is unlocked the next time. This
+               will not time out. If the database was unlocked while connected, and this method is called
+               afterwards, it will return even if the database has been closed again in the meantime.
         """
         while True:
             try:
-                action = json.loads(self.connection.recvfrom(BUFF_SIZE)[0].decode())['action']
+                action = json.loads(self.connection.recvfrom(BUFF_SIZE)[0].decode())[
+                    'action'
+                ]
                 if action == "database-unlocked":
                     break
             except socket.timeout:
@@ -358,11 +363,13 @@ class Identity:
         binary_data = (self.associated_id_key,)
         text_data = (self.associated_name,)
         binary_data = [binary_to_b64(d) for d in binary_data]
-        s = json.dumps({
-            self.VERSION_KEY: self.VERSION,
-            self.BINARY_KEY: list(binary_data),
-            self.TEXT_KEY: list(text_data),
-        })
+        s = json.dumps(
+            {
+                self.VERSION_KEY: self.VERSION,
+                self.BINARY_KEY: list(binary_data),
+                self.TEXT_KEY: list(text_data),
+            }
+        )
         return s
 
     @classmethod

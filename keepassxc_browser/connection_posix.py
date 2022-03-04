@@ -2,7 +2,6 @@ import socket
 
 
 class DefaultSock:
-
     def __init__(self, timeout, buff_size):
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.sock.settimeout(timeout)
@@ -14,9 +13,7 @@ class DefaultSock:
             self.sock.connect(address)
         except socket.error:
             self.sock.close()
-            raise Exception(
-                "Could not connect to {addr}".format(addr=address)
-            )
+            raise Exception("Could not connect to {addr}".format(addr=address))
 
     def close(self):
         self.sock.close()
