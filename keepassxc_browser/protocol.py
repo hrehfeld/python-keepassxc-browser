@@ -50,8 +50,7 @@ def increment_nonce(nonce):
     c_state = 1
     for i, x in enumerate(next_nonce):
         c_state += x
-        c_state %= 256
-        next_nonce[i] = c_state
+        next_nonce[i] = c_state % 256
         c_state >>= 8
 
     return bytes(next_nonce)
