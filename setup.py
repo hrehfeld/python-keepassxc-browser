@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='keepassxc-browser',
-    version='0.1.7',
+    version='0.1.8',
     packages=find_packages(),
     install_requires=['pysodium', 'pywin32; platform_system == "Windows"'],
     description='Access the KeepassXC Browser API from python',
