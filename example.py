@@ -32,18 +32,28 @@ def main():
             f.write(data)
         del data
 
-    c.create_password(id)
+    login = {}
+    try:
+        logins = c.get_logins(id, url='https://python-test123')
+        print(logins)
+        assert len(logins) == 1, logins
+        login = logins[0]
+    except ProtocolError:
+        print('Creating entry')
+        c.create_password(id)
+
+    print('setting password')
+    uuid = login.get('uuid', None)
     c.set_login(
         id,
         url='https://python-test123',
         login='test-user',
-        password='test-password',
-        entry_id=None,
+        password=login.get('password', '') + '_1',
+        entry_id=uuid,
         submit_url=None,
     )
-    c.get_logins(id, url='https://python-test123')
     # c.lock_database(id)
-    
+
     # group = c.create_database_group(id, 'keepassxc-rocks')
     # assert group['name'] == 'keepassxc-rocks' and len(group['uuid']) == 32
 
