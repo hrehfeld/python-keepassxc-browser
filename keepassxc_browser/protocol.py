@@ -17,7 +17,6 @@ else:
 from .exceptions import ProtocolError
 
 BUFF_SIZE = 1024 * 1024
-DEFAULT_SOCKET_TIMEOUT = 60
 
 DEFAULT_SOCKET_NAME = "org.keepassxc.KeePassXC.BrowserServer"
 
@@ -104,7 +103,7 @@ def create_encrypted_command(crypto, action, message):
 
 
 class Connection:
-    def __init__(self, socket_name=DEFAULT_SOCKET_NAME):
+    def __init__(self, socket_name=DEFAULT_SOCKET_NAME, timeout=60):
         # TODO: darwin is untested
         tmpdir = os.getenv('TMPDIR')
         if tmpdir:
@@ -124,14 +123,14 @@ class Connection:
             )
         elif platform.system() == "Darwin" and tmpdir and tmpdir_socket_path.exists():
             server_address = tmpdir_socket_path
-            sock = DefaultSock(DEFAULT_SOCKET_TIMEOUT, BUFF_SIZE)
+            sock = DefaultSock(timeout, BUFF_SIZE)
         elif xdg_runtime_dir and runtime_socket_path.exists():
             server_address = runtime_socket_path
             # TODO: tmpdir is untested
-            sock = DefaultSock(DEFAULT_SOCKET_TIMEOUT, BUFF_SIZE)
+            sock = DefaultSock(timeout, BUFF_SIZE)
         elif tmpdir and tmpdir_socket_path.exists():
             server_address = tmpdir_socket_path
-            sock = DefaultSock(DEFAULT_SOCKET_TIMEOUT, BUFF_SIZE)
+            sock = DefaultSock(timeout, BUFF_SIZE)
         else:
             raise OSError('Unknown path for keepassxc socket.')
 
