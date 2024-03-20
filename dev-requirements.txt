@@ -1,4 +1,4 @@
-black==19.10b0
+black==24.3.0
 flake8==3.7.9
 flake8-bugbear==19.8.0
 flake8-builtins==1.4.2
